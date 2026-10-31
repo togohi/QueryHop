@@ -26,3 +26,6 @@ Contributions are welcome via pull requests.
 If you find QueryHop useful, you can support its development on Ko-fi:
 
 [![Buy Me a Coffee at ko-fi.com](https://storage.ko-fi.com/cdn/kofi6.png?v=6)](https://ko-fi.com/togohi)
+
+## License
+Released under the [MIT License](LICENSE).
