@@ -35,7 +35,7 @@ sortBtn.onclick = () => {
         ? a.name.localeCompare(b.name)
         : b.name.localeCompare(a.name)
     );
-    chrome.storage.sync.set({ searchEngines: engines }, renderList);
+    saveEngines();
 };
 
 function renderList() {
@@ -55,13 +55,15 @@ function renderList() {
         // Drag events
         tr.ondragstart = () => draggedIndex = index;
         tr.ondragover = (e) => e.preventDefault();
+        tr.ondragend = () => draggedIndex = null;
         tr.ondrop = () => {
             if (draggedIndex === null || draggedIndex === index) return;
             const draggedItem = engines[draggedIndex];
             engines.splice(draggedIndex, 1);
             engines.splice(index, 0, draggedItem);
+            draggedIndex = null;
             sortOrder = null;
-            chrome.storage.sync.set({ searchEngines: engines }, renderList);
+            saveEngines();
         };
 
         const handleTd = document.createElement("td");
@@ -85,7 +87,7 @@ function renderList() {
         editBtn.innerHTML = `<i class="fa fa-edit"></i>`;
         editBtn.onclick = () => {
             nameInput.value = engine.name;
-            urlInput.value = engine.url + "{{query}}";
+            urlInput.value = engine.url.includes("{{query}}") ? engine.url : engine.url + "{{query}}";
             editMode = true;
             editId = engine.id;
             addForm.querySelector("button[type=submit]").innerHTML = `<i class="fa fa-check"></i> Update`;
@@ -102,7 +104,8 @@ function renderList() {
         delBtn.onclick = () => {
             if (confirm(`Are you sure you want to delete "${engine.name}"?`)) {
                 engines = engines.filter(e => e.id !== engine.id);
-                chrome.storage.sync.set({ searchEngines: engines }, renderList);
+                if (engine.id === editId) resetForm();
+                saveEngines();
             }
         };
         actionTd.appendChild(delBtn);
@@ -119,6 +122,19 @@ function loadEngines() {
     });
 }
 
+function saveEngines(onSaved) {
+    chrome.storage.sync.set({ searchEngines: engines }, () => {
+        // e.g. storage.sync quota exceeded: restore what is actually stored
+        if (chrome.runtime.lastError) {
+            alert(`Could not save changes: ${chrome.runtime.lastError.message}`);
+            loadEngines();
+            return;
+        }
+        if (onSaved) onSaved();
+        renderList();
+    });
+}
+
 addForm.onsubmit = (e) => {
     e.preventDefault();
     const name = nameInput.value.trim();
@@ -129,27 +145,24 @@ addForm.onsubmit = (e) => {
         return;
     }
 
-    const cleanUrl = url.replace("{{query}}", "");
-
     if (editMode && editId) {
         const engine = engines.find(e => e.id === editId);
         if (engine) {
             engine.name = name;
-            engine.url = cleanUrl;
+            engine.url = url;
         }
         resetForm();
     } else {
         engines.push({
             id: crypto.randomUUID(),
             name,
-            url: cleanUrl
+            url
         });
     }
 
-    chrome.storage.sync.set({ searchEngines: engines }, () => {
+    saveEngines(() => {
         nameInput.value = "";
         urlInput.value = "";
-        renderList();
     });
 };
 
@@ -158,7 +171,7 @@ exportBtn.onclick = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "snipsearch_engines.json";
+    a.download = "queryhop_engines.json";
     a.click();
     URL.revokeObjectURL(url);
 };
@@ -176,20 +189,23 @@ importInput.onchange = (e) => {
         if (!Array.isArray(imported)) throw new Error("Invalid format");
         const valid = imported.every(e =>
             typeof e.id === "string" &&
+            !e.id.startsWith("snipsearch_") && // reserved for built-in menu items
             typeof e.name === "string" &&
             typeof e.url === "string"
         );
+        const uniqueIds = new Set(imported.map(e => e.id)).size === imported.length;
 
-        if (!valid) throw new Error("Invalid structure");
+        if (!valid || !uniqueIds) throw new Error("Invalid structure");
 
-        chrome.storage.sync.set({ searchEngines: imported }, () => {
-            loadEngines(); // Carga desde storage, asegura sincronización
-        });
+        engines = imported;
+        saveEngines();
         } catch (err) {
         alert("Import failed: invalid file format or data.");
         }
     };
     reader.readAsText(file);
+    // Allow importing the same file again
+    importInput.value = "";
 };
 
 loadEngines();

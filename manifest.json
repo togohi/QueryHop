@@ -1,16 +1,17 @@
 {
 	"manifest_version": 3,
-	"name": "SnipSearch",
-	"version": "0.2",
-	"description": "Select text and search it quickly in your favorite sites via context menu.",
+	"name": "QueryHop",
+	"version": "0.3",
+	"description": "Right-click any selected text to search it on Google, YouTube, Wikipedia or any site you add. No tracking, no page access.",
 	"permissions": ["contextMenus", "storage"],
 	"background": {
 		"service_worker": "background.js"
 	},
 	"options_page": "options.html",
 	"icons": {
-		"16": "icon.png",
-		"48": "icon.png",
-		"128": "icon.png"
+		"16": "icon16.png",
+		"32": "icon32.png",
+		"48": "icon48.png",
+		"128": "icon128.png"
 	}
 }

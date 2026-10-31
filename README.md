@@ -1,6 +1,6 @@
-# SnipSearch
+# QueryHop
 
-SnipSearch is a Chrome extension that lets you search selected text quickly across your preferred websites.
+QueryHop (formerly SnipSearch) is a Chrome extension that lets you search selected text quickly across your preferred websites.
 
 ## Features
 - Context menu to search the selected text with the engines you choose.
@@ -16,8 +16,13 @@ SnipSearch is a Chrome extension that lets you search selected text quickly acro
 
 ## Usage
 1. Select text on any webpage.
-2. Right-click and choose **SnipSearch**.
+2. Right-click and choose **QueryHop**.
 3. Pick the engine you want to use for the search.
 
 ## Contributing
 Contributions are welcome via pull requests.
+
+## Support
+If you find QueryHop useful, you can support its development on Ko-fi:
+
+[![Buy Me a Coffee at ko-fi.com](https://storage.ko-fi.com/cdn/kofi6.png?v=6)](https://ko-fi.com/togohi)
